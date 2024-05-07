@@ -108,7 +108,19 @@ def poisson_log_pmf(k, rate):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    
+    #simplification: log(p(X=k|rate)) = log(rate^k * e^(-rate) / k!) = k * log(rate) + (-rate)*log(e) - log(k!)
+    
+    k_log_rate = k * np.log(rate)
+    
+    rate_log_e = rate * np.log(np.exp(1))
+    
+    log_k_Factorial = 0
+    for i in range(1, k+1):
+        log_k_Factorial += np.log(i)
+        
+    log_p = k_log_rate - rate_log_e - log_k_Factorial 
+    
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -125,7 +137,11 @@ def get_poisson_log_likelihoods(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    likelihoods = np.zeros(rates.shape[0])
+    for i, rate in enumerate(rates):
+        for sample in samples:
+            likelihoods[i] += poisson_log_pmf(sample, rate)
+    
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -143,7 +159,7 @@ def possion_iterative_mle(samples, rates):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    rate = rates[np.argmax(likelihoods)]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -159,7 +175,7 @@ def possion_analytic_mle(samples):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    mean = np.mean(samples)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -180,7 +196,13 @@ def normal_pdf(x, mean, std):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    std_squre = std**2
+    
+    exp_power = - (((x - mean)**2) / (2 * std_squre))
+    
+    pre_devider = 1.0 / np.sqrt(2 * np.pi * std_squre)
+    
+    p = pre_devider * np.exp(exp_power)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -199,7 +221,15 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.dataset = dataset
+        self.class_value = class_value
+        
+        class_instances = dataset[dataset[:,-1] == class_value]
+        class_instances_without_label = class_instances[:,:-1]
+        
+        self.mean = np.mean(class_instances_without_label, axis=0)
+        self.std = np.std(class_instances_without_label, axis=0)
+        
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -212,7 +242,8 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        num_instances_from_class = np.sum(self.dataset[:,-1] == self.class_value)
+        prior = num_instances_from_class / self.dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -226,7 +257,11 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        likelihood = 1.0
+        
+        for i, feature_val in enumerate(x):
+            likelihood *= normal_pdf(feature_val, self.mean[i], self.std[i])
+            
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -241,7 +276,10 @@ class NaiveNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        prior = self.get_prior()
+        likelihood = self.get_instance_likelihood(x)
+        
+        posterior = likelihood * prior
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -265,7 +303,8 @@ class MAPClassifier():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.ccd0 = ccd0
+        self.ccd1 = ccd1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -283,7 +322,13 @@ class MAPClassifier():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        class_0_posterior = self.ccd0.get_instance_posterior(x)
+        class_1_posterior = self.ccd1.get_instance_posterior(x)
+        
+        if class_0_posterior > class_1_posterior:
+            pred = 0
+        else:
+            pred = 1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -304,7 +349,18 @@ def compute_accuracy(test_set, map_classifier):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    num_correct = 0
+    
+    for instance in test_set:
+        correct_label = instance[-1]
+        instance_without_label = instance[:-1]
+        
+        label_prediction = map_classifier.predict(instance_without_label)
+        
+        if label_prediction == correct_label:
+            num_correct += 1
+    
+    acc = num_correct / test_set.shape[0]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
