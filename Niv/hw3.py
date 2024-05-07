@@ -10,35 +10,35 @@ class conditional_independence():
         self.C = {0: 0.5, 1: 0.5}  # P(C=c)
 
         self.X_Y = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0.11,
+            (0, 1): 0.19,
+            (1, 0): 0.19,
+            (1, 1): 0.51
         }  # P(X=x, Y=y)
 
         self.X_C = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0.2,
+            (0, 1): 0.1,
+            (1, 0): 0.3,
+            (1, 1): 0.4
         }  # P(X=x, C=y)
 
         self.Y_C = {
-            (0, 0): None,
-            (0, 1): None,
-            (1, 0): None,
-            (1, 1): None
+            (0, 0): 0.25,
+            (0, 1): 0.05,
+            (1, 0): 0.25,
+            (1, 1): 0.45
         }  # P(Y=y, C=c)
 
         self.X_Y_C = {
-            (0, 0, 0): None,
-            (0, 0, 1): None,
-            (0, 1, 0): None,
-            (0, 1, 1): None,
-            (1, 0, 0): None,
-            (1, 0, 1): None,
-            (1, 1, 0): None,
-            (1, 1, 1): None,
+            (0, 0, 0): 0.1,
+            (0, 0, 1): 0.01,
+            (0, 1, 0): 0.1,
+            (0, 1, 1): 0.09,
+            (1, 0, 0): 0.15,
+            (1, 0, 1): 0.04,
+            (1, 1, 0): 0.15,
+            (1, 1, 1): 0.36,
         }  # P(X=x, Y=y, C=c)
 
     def is_X_Y_dependent(self):
@@ -51,7 +51,18 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        for x_key in X.keys():
+            for y_key in Y.keys():
+                p_x_and_y = X_Y[(x_key, y_key)]
+                
+                p_x = X[x_key]
+                p_y = Y[y_key]
+                
+                if not np.isclose(p_x_and_y, p_x * p_y):
+                    return True
+        
+        return False
+                
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -69,7 +80,19 @@ class conditional_independence():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        for x_key in X.keys():
+            for y_key in Y.keys():
+                for c_key in C.keys():
+                    p_c = C[c_key]
+                    p_x_given_c = X_C[(x_key, c_key)] / p_c
+                    p_y_given_c = Y_C[(y_key, c_key)] / p_c
+                    
+                    p_x_and_y_given_c = X_Y_C[(x_key, y_key, c_key)] / p_c
+                    
+                    if not np.isclose(p_x_and_y_given_c, p_x_given_c * p_y_given_c):
+                        return False
+        
+        return True
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
