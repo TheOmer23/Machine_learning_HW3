@@ -381,7 +381,13 @@ def multi_normal_pdf(x, mean, cov):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    d = len(x)
+    
+    pai_part = 1 / ((2* np.pi) ** (d/2))
+    det_part = np.linalg.det(cov) ** (-0.5)
+    power_part = -0.5 * (x - mean) @ np.linalg.inv(cov) @ (x - mean).T
+    
+    pdf = pai_part * det_part * np.exp(power_part)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -401,7 +407,15 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.dataset = dataset
+        self.class_value = class_value
+        
+        class_instances = dataset[dataset[:,-1] == class_value]
+        class_instances_without_label = class_instances[:,:-1]
+        
+        self.mean = np.mean(class_instances_without_label, axis=0)
+        self.cov = np.cov(class_instances_without_label.T) #transpose beacuse of np.cov behave
+        
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -414,7 +428,8 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        num_instances_from_class = np.sum(self.dataset[:,-1] == self.class_value)
+        prior = num_instances_from_class / self.dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -428,7 +443,7 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        likelihood = multi_normal_pdf(x, self.mean, self.cov)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -443,7 +458,11 @@ class MultiNormalClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        
+        prior = self.get_prior()
+        likelihood = self.get_instance_likelihood(x)
+        
+        posterior = likelihood * prior
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -463,7 +482,8 @@ class MaxPrior():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.ccd0 = ccd0
+        self.ccd1 = ccd1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -481,7 +501,13 @@ class MaxPrior():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        class_0_prior = self.ccd0.get_prior()
+        class_1_prior = self.ccd1.get_prior()
+        
+        if class_0_prior > class_1_prior:
+            pred = 0
+        else:
+            pred = 1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -501,7 +527,8 @@ class MaxLikelihood():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.ccd0 = ccd0
+        self.ccd1 = ccd1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -519,7 +546,13 @@ class MaxLikelihood():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        class_0_likelihood = self.ccd0.get_instance_likelihood(x)
+        class_1_likelihood = self.ccd1.get_instance_likelihood(x)
+        
+        if class_0_likelihood > class_1_likelihood:
+            pred = 0
+        else:
+            pred = 1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -540,7 +573,18 @@ class DiscreteNBClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.class_value = class_value
+        self.dataset = dataset
+        
+        self.num_class_instances = np.sum(dataset[:, -1] == class_value)
+        
+        self.num_features = dataset.shape[1] - 1
+        self.v_j = {}
+        
+        for feature_index in range(self.num_features):
+            possible_values = np.unique(dataset[:,feature_index])
+            self.v_j[feature_index] = possible_values.shape[0]
+        
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -554,7 +598,7 @@ class DiscreteNBClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        prior = self.num_class_instances / self.dataset.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -569,7 +613,16 @@ class DiscreteNBClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        likelihood = 1.0
+        
+        for feature_index in range(self.num_features):
+            feature_value = x[feature_index]
+            if feature_value in np.unique(self.dataset[:,feature_index]):
+                n_ij_count_condition = (self.dataset[:, feature_index] == feature_value) & (self.dataset[:, -1] == self.class_value)
+                n_ij = np.sum(n_ij_count_condition)
+                likelihood *=  (n_ij + 1) / (self.num_class_instances + self.v_j[feature_index])
+            else:
+                likelihood *= EPSILLON 
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -585,7 +638,10 @@ class DiscreteNBClassDistribution():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        prior = self.get_prior()
+        likelihood = self.get_instance_likelihood(x)
+        
+        posterior = likelihood * prior
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -606,7 +662,8 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.ccd0 = ccd0
+        self.ccd1 = ccd1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -624,7 +681,13 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        class_0_posterior = self.ccd0.get_instance_posterior(x)
+        class_1_posterior = self.ccd1.get_instance_posterior(x)
+        
+        if class_0_posterior > class_1_posterior:
+            pred = 0
+        else:
+            pred = 1
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
@@ -643,7 +706,18 @@ class MAPClassifier_DNB():
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        num_correct = 0
+        
+        for instance in test_set:
+            correct_label = instance[-1]
+            instance_without_label = instance[:-1]
+            
+            label_prediction = self.predict(instance_without_label)
+            
+            if label_prediction == correct_label:
+                num_correct += 1
+        
+        acc = num_correct / test_set.shape[0]
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
