@@ -251,7 +251,7 @@ class NaiveNormalClassDistribution():
     
     def get_instance_likelihood(self, x):
         """
-        Returns the likelihhod porbability of the instance under the class according to the dataset distribution.
+        Returns the likelihood porbability of the instance under the class according to the dataset distribution.
         """
         likelihood = None
         ###########################################################################
